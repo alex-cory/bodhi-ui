@@ -29,12 +29,12 @@ export default class EventCard extends PureComponent {
   static propTypes = {
     classes: PropTypes.object.isRequired,
     index: PropTypes.number.isRequired,
-    endTime: PropTypes.string,
+    resultSetStartTime: PropTypes.string,
     intl: intlShape.isRequired, // eslint-disable-line react/no-typos
   };
 
   static defaultProps = {
-    endTime: undefined,
+    resultSetStartTime: undefined,
   };
 
   getAmountLabel = () => {
@@ -75,7 +75,7 @@ export default class EventCard extends PureComponent {
 
   render() {
     const { classes, index } = this.props;
-    const { name, isPending, isUpcoming, url, endTime } = this.props.event;
+    const { name, isPending, isUpcoming, url, resultSetStartTime } = this.props.event;
     const { formatMessage } = this.props.intl;
     const amountLabel = this.getAmountLabel();
 
@@ -100,8 +100,13 @@ export default class EventCard extends PureComponent {
                 )}
                 <div className={classes.eventCardInfoItem}>
                   <i className={cx(classes.dashBoardCardIcon, 'icon iconfont icon-ic_timer')}></i>
-                  {endTime !== undefined
-                    ? <Fragment>{getEndTimeCountDownString(this.props.event.endTime - this.props.increasingCount)}</Fragment>
+                  {this.props.event.resultSetStartTime !== undefined
+                    ? <div>
+                      <div>{this.props.event.resultSetStartTime}</div>
+                      <div>{Date.now()}</div>
+                      <Fragment>{(this.props.event.resultSetStartTime < Date.now()).toString()}</Fragment>
+                      {/* <Fragment>{getEndTimeCountDownString(this.props.event.resultSetStartTime - this.props.increasingCount)}</Fragment> */}
+                    </div>
                     : <FormattedMessage id="str.end" defaultMessage="Ended" />
                   }
                 </div>

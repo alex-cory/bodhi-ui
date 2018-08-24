@@ -72,7 +72,7 @@ export default class QtumPredictionStore {
 
   async fetch(limit = this.limit, skip = this.skip) {
     if (this.hasMore) {
-      const orderBy = { field: 'endTime', direction: this.sortBy };
+      const orderBy = { field: 'resultSetStartTime', direction: this.sortBy };
       const filters = [
         { token: Token.QTUM, status: OracleStatus.VOTING },
         { token: Token.QTUM, status: OracleStatus.CREATED },
@@ -81,7 +81,11 @@ export default class QtumPredictionStore {
       result = await queryAllOracles(filters, orderBy, limit, skip);
       result = _.uniqBy(result, 'txid').map((oracle) => new Oracle(oracle, this.app));
       if (result.length < limit) this.hasMore = false;
-      return _.orderBy(result, ['endTime'], this.sortBy.toLowerCase());
+      // const now = Date.now();
+      const list = _
+        .orderBy(result, ['resultSetStartTime'], this.sortBy.toLowerCase()); // sorted by sortBy
+        // .filter(l => l.resultSetStartTime > now); // filter out passing events
+      return list;
     }
     return INIT_VALUES.list;
   }
