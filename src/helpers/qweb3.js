@@ -1,8 +1,13 @@
+/* eslint-disable */
 import { Qweb3 } from 'Qweb3';
 
 // If there is no qryptoProvider, it meaans there is no qrypto installed
-// TODO: prompt user to install qrypto
-if (!window && window.qryptoProvider) return {};
+if (!window && window.qryptoProvider) {
+  // TODO: prompt user to install qrypto
+  console.log('No qryptoProvider, please consider to install qrypto');
+  console.log('https://chrome.google.com/webstore/detail/qrypto/hdmjdgjbehedbnjmljikggbmmbnbmlnd');
+  return;
+}
 // Instantiate Qweb3 with CurrentProvider
 const CurrentProvider = window.qryptoProvider;
 const qweb3 = new Qweb3(new CurrentProvider());
