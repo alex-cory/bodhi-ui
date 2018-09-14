@@ -1,7 +1,7 @@
 import { observable, action, reaction, runInAction } from 'mobx';
 import _ from 'lodash';
 import { TransactionType, TransactionStatus } from 'constants';
-import { Transaction } from 'models';
+import { Transaction } from '../../stores/models';
 
 import { queryAllTransactions } from '../../network/graphql/queries';
 

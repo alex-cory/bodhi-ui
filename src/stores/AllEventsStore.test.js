@@ -1,5 +1,7 @@
 import { Routes } from 'constants';
 import AllEventsStore from './AllEventsStore';
+import { mockResetTopicList, mockResetOracleList, mockAddTopic, mockAddOracle } from '../network/graphql/queries/';
+
 jest.mock('../network/graphql/queries'); // block and manually mock our backend
 
 /** mock necessary http needed modules */
@@ -28,6 +30,21 @@ describe('AllEventsStore', () => {
   }; // mock the appstore
   beforeEach(() => {
     store = new AllEventsStore(app); // create a new instance before each test case
+    mockResetOracleList();
+    mockResetTopicList();
+    for (let i = 0; i < 23; i++) {
+      mockAddTopic({ txid: i });
+      mockAddOracle({
+        txid: i,
+        amounts: [],
+        consensusThreshold: 100,
+        address: '02e91962156da21fae38e65038279c020347e4ff',
+        topicAddress: '4044f951857f2885d66d29a475235dacdaddea84',
+        resultSetEndTime: 10,
+        endTime: 20,
+        options: [],
+      });
+    }
   });
 
   /** all following test cases target specifically to the mock backend, eg. network/graphql/__mocks__/queries.js */
