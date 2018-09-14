@@ -9,8 +9,8 @@ if (!window && window.qryptoProvider) {
   return;
 }
 // Instantiate Qweb3 with CurrentProvider
-const CurrentProvider = window.qryptoProvider;
-const qweb3 = new Qweb3(new CurrentProvider());
+const CurrentProvider = window.qrypto.rpcProvider;
+const qweb3 = new Qweb3(CurrentProvider());
 
 // documentation for qweb3:
 // https://github.com/bodhiproject/qweb3.js#qweb3js
