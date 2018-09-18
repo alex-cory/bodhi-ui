@@ -4,7 +4,7 @@ import axios from 'axios';
 import moment from 'moment';
 import Web3Utils from 'web3-utils';
 import { TransactionType, TransactionStatus, Token } from 'constants';
-import { TransactionCost } from 'models';
+// import { TransactionCost } from 'models';
 import { defineMessages } from 'react-intl';
 
 import { decimalToSatoshi, satoshiToDecimal } from '../../helpers/utility';
@@ -304,7 +304,7 @@ export default class CreateEventStore {
             senderAddress: this.app.wallet.lastUsedAddress,
           }
         );
-        const txFees = _.map(data, (item) => new TransactionCost(item));
+        const txFees = _.map(data, (item) => item);
         this.txFees = txFees;
       } catch (error) {
         this.app.ui.setError(error.message, Routes.api.transactionCost);
@@ -460,7 +460,7 @@ export default class CreateEventStore {
         senderAddress: this.creator,
       };
       const { data } = await axios.post(Routes.api.transactionCost, txInfo);
-      const txFees = _.map(data, (item) => new TransactionCost(item));
+      const txFees = _.map(data, (item) => item);
       runInAction(() => {
         this.txFees = txFees;
         this.txConfirmDialogOpen = true;
