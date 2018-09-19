@@ -1,4 +1,5 @@
 import { TransactionType, TransactionStatus } from 'constants';
+import { observable } from 'mobx';
 import PendingTxsSnackbarStore from './store';
 import { mockResetTransactionList, mockAddTransaction } from '../../network/graphql/queries/';
 
@@ -12,9 +13,9 @@ describe('PendingTxsSnackbarStore', () => {
     bot: 100,
   };
   const app = {
-    sortBy: 'ASC',
+    sortBy: ('ASC'),
     wallet: { addresses: [addr] },
-    global: { syncBlockNum: 0, syncPercent: 10 },
+    global: observable({ syncBlockNum: 0, syncPercent: 10 }),
     refreshing: false,
     ui: { location: 0 },
   }; // mock the appstore
@@ -22,53 +23,63 @@ describe('PendingTxsSnackbarStore', () => {
     store = new PendingTxsSnackbarStore(app); // create a new instance before each test case
     mockResetTransactionList();
   });
+  const sleep = ms => new Promise(res => setTimeout(res, ms));
 
   /** all following test cases target specifically to the mock backend, eg. network/graphql/__mocks__/queries.js */
   it('Init with null tx list', async () => {
-    expect.assertions(2);
     await store.init();
     expect(store.count).toBe(0);
     expect(store.isVisible).toBe(false);
+    expect.assertions(2);
   });
 
   it('reaction visible', async () => {
+    expect(store.count).toBe(0);
+    store.count = 1;
+    sleep(200);
+    expect(store.isVisible).toBe(true);
+    store.count = 0;
+    sleep(200);
+    expect(store.isVisible).toBe(false);
+    store.count = 1;
+    sleep(200);
+    expect(store.isVisible).toBe(true);
+    store.count = 0;
+    sleep(200);
     expect(store.isVisible).toBe(false);
     mockAddTransaction({ txid: 1, status: TransactionStatus.PENDING, type: TransactionType.APPROVE_CREATE_EVENT });
     await store.queryPendingTransactions();
-    setTimeout(() => {
-      expect(store.isVisible).toBe(true);
-    }, 500);
+    expect(store.count).toBe(1);
+    sleep(200);
+    expect(store.isVisible).toBe(true);
     mockResetTransactionList();
     await store.queryPendingTransactions();
-    setTimeout(() => {
-      expect(store.isVisible).toBe(false);
-    }, 500);
+    sleep(200);
+    expect(store.isVisible).toBe(false);
+    expect.assertions(8);
   });
 
   it('reaction sync', async () => {
     expect(store.isVisible).toBe(false);
     mockAddTransaction({ txid: 1, status: TransactionStatus.PENDING, type: TransactionType.APPROVE_CREATE_EVENT });
     app.global.syncBlockNum = 1;
-    setTimeout(() => {
-      expect(store.isVisible).toBe(false);
-    }, 500);
+    sleep(200);
+    expect(store.isVisible).toBe(false);
     app.global.syncPercent = 120;
-    setTimeout(() => {
-      expect(store.isVisible).toBe(false);
-    }, 500);
+    sleep(200);
+    expect(store.isVisible).toBe(false);
     app.global.syncBlockNum = 2;
-    setTimeout(() => {
-      expect(store.isVisible).toBe(true);
-    }, 500);
+    sleep(500);
+    expect(app.global.syncPercent).toBe(120);
+    expect(store.isVisible).toBe(false);// t
     mockResetTransactionList();
     app.global.syncPercent = 150;
-    setTimeout(() => {
-      expect(store.isVisible).toBe(true);
-    }, 500);
+    sleep(200);
+    expect(store.isVisible).toBe(false);// t
     app.global.syncBlockNum = 3;
-    setTimeout(() => {
-      expect(store.isVisible).toBe(false);
-    }, 500);
+    sleep(200);
+    expect(store.isVisible).toBe(false);
+    expect.assertions(7);
   });
 
   it('Init with tx list', async () => {
@@ -103,5 +114,6 @@ describe('PendingTxsSnackbarStore', () => {
     expect(store.pendingCreateEvents.length).toBe(0);
     expect(store.pendingSetResults.length).toBe(1);
     expect(store.isVisible).toBe(true);
+    expect.assertions(20);
   });
 });

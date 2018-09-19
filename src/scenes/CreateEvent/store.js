@@ -286,13 +286,6 @@ export default class CreateEventStore {
     }
 
     runInAction(async () => {
-      this.prediction.startTime = nowPlus(TIME_DELAY_FROM_NOW_SEC);
-      this.prediction.endTime = nowPlus(TIME_DELAY_FROM_NOW_SEC + TIME_GAP_MIN_SEC);
-      this.resultSetting.startTime = nowPlus(TIME_DELAY_FROM_NOW_SEC + TIME_GAP_MIN_SEC);
-      this.resultSetting.endTime = nowPlus(TIME_DELAY_FROM_NOW_SEC + (TIME_GAP_MIN_SEC * 2));
-      this.escrowAmount = satoshiToDecimal(escrowRes.data[0]);
-      this.creator = this.app.wallet.lastUsedAddress;
-      this.isOpen = true;
       // For txfees init
       try {
         const { data } = await axios.post(
@@ -308,7 +301,15 @@ export default class CreateEventStore {
         this.txFees = txFees;
       } catch (error) {
         this.app.ui.setError(error.message, Routes.api.transactionCost);
+        return;
       }
+      this.prediction.startTime = nowPlus(TIME_DELAY_FROM_NOW_SEC);
+      this.prediction.endTime = nowPlus(TIME_DELAY_FROM_NOW_SEC + TIME_GAP_MIN_SEC);
+      this.resultSetting.startTime = nowPlus(TIME_DELAY_FROM_NOW_SEC + TIME_GAP_MIN_SEC);
+      this.resultSetting.endTime = nowPlus(TIME_DELAY_FROM_NOW_SEC + (TIME_GAP_MIN_SEC * 2));
+      this.escrowAmount = satoshiToDecimal(escrowRes.data[0]);
+      this.creator = this.app.wallet.lastUsedAddress;
+      this.isOpen = true;
     });
   }
 
