@@ -1,6 +1,7 @@
 import axios from 'axios';
 import CEStore from './store';
 import { decimalToSatoshi } from '../../helpers/utility';
+import { mockResetTransactionList, mockAddTransaction } from '../../network/graphql/queries/';
 
 jest.mock('../../network/graphql/queries'); // block and manually mock our backend
 jest.mock('../../network/graphql/mutations');
@@ -100,6 +101,50 @@ describe('Create Event Store', () => {
       expect(store.txFees.length).toBe(2);
       expect(store.txFees[0].type).toBe('approve');
       expect(store.txFees[1].type).toBe('createEvent');
+    });
+
+    it('Noshow when pending tx exists', async () => {
+      mockResetTransactionList();
+      mockAddTransaction({
+        txid: 0,
+        status: 'CREATEEVENT',
+        type: 'PENDING',
+      });
+      axios.post.mockReturnValueOnce({ data: respEscrow });
+      axios.get.mockReturnValueOnce({ data: respInsightTotals });
+      axios.post.mockReturnValueOnce({ data: respTxFees });
+      await store.open();
+      expect(store.isOpen).toBe(false);
+      store = new CEStore(appMock);
+      mockResetTransactionList();
+      mockAddTransaction({
+        txid: 0,
+        status: 'CREATEEVENT',
+        type: 'CREATED',
+      });
+      mockAddTransaction({
+        txid: 0,
+        status: 'BET',
+        type: 'PENDING',
+      });
+      axios.post.mockReturnValueOnce({ data: respEscrow });
+      axios.get.mockReturnValueOnce({ data: respInsightTotals });
+      axios.post.mockReturnValueOnce({ data: respTxFees });
+      await store.open();
+      expect(store.isOpen).toBe(true);
+      store = new CEStore(appMock);
+      mockResetTransactionList();
+      mockAddTransaction({
+        txid: 0,
+        status: 'APPROVECREATEEVENT',
+        type: 'PENDING',
+      });
+      axios.post.mockReturnValueOnce({ data: respEscrow });
+      axios.get.mockReturnValueOnce({ data: respInsightTotals });
+      axios.post.mockReturnValueOnce({ data: respTxFees });
+      await store.open();
+      expect(store.isOpen).toBe(false);
+      store = new CEStore(appMock);
     });
 
     it('escrowRes post Error Handle', async () => {
