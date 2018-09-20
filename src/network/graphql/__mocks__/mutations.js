@@ -5,6 +5,10 @@
  * */
 import mockData from './mockData';
 
+export function mockResetAllList() {
+  mockData.resetAll();
+}
+
 export function mockResetTopicList() {
   mockData.resetTopics();
 }

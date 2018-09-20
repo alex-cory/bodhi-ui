@@ -4,11 +4,11 @@ import axios from 'axios';
 import moment from 'moment';
 import Web3Utils from 'web3-utils';
 import { TransactionType, TransactionStatus, Token } from 'constants';
-// import { TransactionCost } from 'models';
 import { defineMessages } from 'react-intl';
 
 import { decimalToSatoshi, satoshiToDecimal } from '../../helpers/utility';
 import Tracking from '../../helpers/mixpanelUtil';
+import { TransactionCost } from '../../stores/models';
 import Routes from '../../network/routes';
 import { isProduction, defaults } from '../../config/app';
 import { createTopic } from '../../network/graphql/mutations';
@@ -286,6 +286,13 @@ export default class CreateEventStore {
     }
 
     runInAction(async () => {
+      this.prediction.startTime = nowPlus(TIME_DELAY_FROM_NOW_SEC);
+      this.prediction.endTime = nowPlus(TIME_DELAY_FROM_NOW_SEC + TIME_GAP_MIN_SEC);
+      this.resultSetting.startTime = nowPlus(TIME_DELAY_FROM_NOW_SEC + TIME_GAP_MIN_SEC);
+      this.resultSetting.endTime = nowPlus(TIME_DELAY_FROM_NOW_SEC + (TIME_GAP_MIN_SEC * 2));
+      this.escrowAmount = satoshiToDecimal(escrowRes.data[0]);
+      this.creator = this.app.wallet.lastUsedAddress;
+      this.isOpen = true;
       // For txfees init
       try {
         const { data } = await axios.post(
@@ -297,19 +304,11 @@ export default class CreateEventStore {
             senderAddress: this.app.wallet.lastUsedAddress,
           }
         );
-        const txFees = _.map(data, (item) => item);
+        const txFees = _.map(data, (item) => new TransactionCost(item));
         this.txFees = txFees;
       } catch (error) {
         this.app.ui.setError(error.message, Routes.api.transactionCost);
-        return;
       }
-      this.prediction.startTime = nowPlus(TIME_DELAY_FROM_NOW_SEC);
-      this.prediction.endTime = nowPlus(TIME_DELAY_FROM_NOW_SEC + TIME_GAP_MIN_SEC);
-      this.resultSetting.startTime = nowPlus(TIME_DELAY_FROM_NOW_SEC + TIME_GAP_MIN_SEC);
-      this.resultSetting.endTime = nowPlus(TIME_DELAY_FROM_NOW_SEC + (TIME_GAP_MIN_SEC * 2));
-      this.escrowAmount = satoshiToDecimal(escrowRes.data[0]);
-      this.creator = this.app.wallet.lastUsedAddress;
-      this.isOpen = true;
     });
   }
 
@@ -461,7 +460,7 @@ export default class CreateEventStore {
         senderAddress: this.creator,
       };
       const { data } = await axios.post(Routes.api.transactionCost, txInfo);
-      const txFees = _.map(data, (item) => item);
+      const txFees = _.map(data, (item) => new TransactionCost(item));
       runInAction(() => {
         this.txFees = txFees;
         this.txConfirmDialogOpen = true;
