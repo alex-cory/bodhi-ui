@@ -85,6 +85,7 @@ const INIT = {
   resultSetterDialogOpen: false,
   title: '',
   creator: '',
+  loading: false,
   prediction: {
     startTime: nowPlus(TIME_DELAY_FROM_NOW_SEC),
     endTime: nowPlus(TIME_DELAY_FROM_NOW_SEC + TIME_GAP_MIN_SEC),
@@ -125,6 +126,7 @@ export default class CreateEventStore {
 
   // form fields
   @observable isOpen = INIT.isOpen
+  @observable loading = INIT.loading
   @observable title = INIT.title
   @observable creator = INIT.creator // address
   @observable prediction = INIT.prediction
@@ -233,9 +235,10 @@ export default class CreateEventStore {
   @action
   open = async () => {
     Tracking.track('dashboard-createEventClick');
-
+    this.isOpen = true;
     // Fetch current escrow amount
     let escrowRes;
+    this.loading = true;
     try {
       escrowRes = await axios.post(Routes.api.eventEscrowAmount, {
         senderAddress: this.app.wallet.lastUsedAddress,
@@ -247,6 +250,7 @@ export default class CreateEventStore {
       });
       runInAction(() => {
         this.app.ui.setError(err.message, Routes.api.eventEscrowAmount);
+        this.loading = false;
       });
       return;
     }
@@ -279,6 +283,9 @@ export default class CreateEventStore {
           null,
           'INFO',
         );
+        runInAction(() => {
+          this.loading = false;
+        });
         return;
       }
     } catch (error) {
@@ -292,7 +299,7 @@ export default class CreateEventStore {
       this.resultSetting.endTime = nowPlus(TIME_DELAY_FROM_NOW_SEC + (TIME_GAP_MIN_SEC * 2));
       this.escrowAmount = satoshiToDecimal(escrowRes.data[0]);
       this.creator = this.app.wallet.lastUsedAddress;
-      this.isOpen = true;
+      this.loading = false;
       // For txfees init
       try {
         const { data } = await axios.post(

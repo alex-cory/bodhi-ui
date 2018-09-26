@@ -15,6 +15,7 @@ import ResultSetStartTime from './ResultSetStartTime';
 import ResultSetEndTime from './ResultSetEndTime';
 import Outcomes from './Outcomes';
 import ResultSetter from './ResultSetter';
+import Loading from '../../components/EventListLoading';
 
 const messages = defineMessages({
   createEscrowNoteTitleMsg: {
@@ -32,7 +33,7 @@ const messages = defineMessages({
 });
 
 const CreateEventDialog = withStyles(styles)(observer(({
-  classes, store: { createEvent, createEvent: { warning, hasEnoughFee, isOpen } },
+  classes, store: { createEvent },
 }) => (
   <Fragment>
     <Dialog
@@ -40,9 +41,28 @@ const CreateEventDialog = withStyles(styles)(observer(({
       classes={{ paper: classes.createDialogPaper }}
       fullWidth
       maxWidth='md'
-      open={isOpen}
+      open={createEvent.isOpen}
     >
-      <DialogTitle className={classes.createDialogTitle}>Create an event</DialogTitle>
+      {createEvent.loading ? <Loading marginTop='10rem' /> : <DialogContent classes={classes} createEvent={createEvent} />}
+    </Dialog>
+    {createEvent.txConfirmDialogOpen && (
+      <CreateEventTxConfirmDialog createEvent={createEvent} />
+    )}
+    {createEvent.txSentDialogOpen && (
+      <TxSentDialog
+        txid={createEvent.txid}
+        open={createEvent.txSentDialogOpen}
+        onClose={createEvent.close}
+      />
+    )}
+  </Fragment>
+)));
+
+const DialogContent = ({ classes, createEvent }) => {
+  const { warning, hasEnoughFee } = createEvent;
+  return (
+    <Fragment>
+      <DialogTitle className={classes.createDialogTitle}>Create An Event</DialogTitle>
       {!hasEnoughFee && <EventWarning id={warning.id} message={warning.message} type='error' />}
       <EscrowAmountNote amount={createEvent.escrowAmount} />
       <Content>
@@ -59,19 +79,9 @@ const CreateEventDialog = withStyles(styles)(observer(({
         <CancelButton createEvent={createEvent} />
         <PublishButton createEvent={createEvent} />
       </Footer>
-    </Dialog>
-    {createEvent.txConfirmDialogOpen && (
-      <CreateEventTxConfirmDialog createEvent={createEvent} />
-    )}
-    {createEvent.txSentDialogOpen && (
-      <TxSentDialog
-        txid={createEvent.txid}
-        open={createEvent.txSentDialogOpen}
-        onClose={createEvent.close}
-      />
-    )}
-  </Fragment>
-)));
+    </Fragment>
+  );
+};
 
 const DialogTitle = styled(_DialogTitle)`
 
