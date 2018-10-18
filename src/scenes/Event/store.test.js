@@ -1,5 +1,5 @@
 import { isEqual } from 'lodash';
-import { EventType } from 'constants';
+import { EventType, TransactionType } from 'constants';
 
 import EventStore from './store';
 import mockDB from '../../../test/mockDB';
@@ -19,9 +19,12 @@ global.localStorage = localStorageMock;
 describe('EventStore', () => {
   let app;
   let store;
+  let wallet;
 
   beforeEach(() => {
     app = getMockAppStore();
+    wallet = app.wallet.addresses[0].address;
+
     store = new EventStore(app); // create a new instance before each test case
     mockDB.init();
   });
@@ -38,6 +41,12 @@ describe('EventStore', () => {
 
     it('sets all the values for a Betting Oracle', async () => {
       const { topicAddress, address, txid } = mockDB.paginatedOracles.oracles[0];
+      mockDB.addTransactions(mockDB.generateTransaction({
+        type: TransactionType.BET,
+        senderAddress: wallet.address,
+        topicAddress,
+      }));
+
       await store.init({
         topicAddress,
         address,
@@ -47,7 +56,6 @@ describe('EventStore', () => {
 
       // reset()
       expect(store.amount).toBe('');
-      expect(store.transactions.length).toBe(0);
       expect(store.selectedOptionIdx).toBe(-1);
       expect(store.escrowClaim).toBe(0);
       expect(store.allowance).toBe(undefined);
@@ -66,8 +74,12 @@ describe('EventStore', () => {
       expect(store.oracles.length).toBe(1);
       expect(store.oracles[0].address).toBe(address);
       expect(store.loading).toBe(false);
-      // TODO: txs
-      // TODO: allowance API mock
+
+      // queryTransactions()
+      expect(store.transactions.length).toBe(1);
+
+      // getAllowanceAmount()
+      expect(store.allowance).toBe(undefined);
     });
 
     it('sets all the values for a Result Setting Oracle', async () => {
