@@ -1,4 +1,5 @@
 import { isEqual } from 'lodash';
+import cryptoRandomString from 'crypto-random-string';
 import { EventType, TransactionType } from 'constants';
 
 import EventStore from './store';
@@ -37,6 +38,36 @@ describe('EventStore', () => {
 
   describe('init()', () => {
     it('sets all the values for an Unconfirmed Oracle', async () => {
+      const oracle = mockDB.generateOracle({
+        topicAddress: undefined,
+        address: undefined,
+        hashId: cryptoRandomString(32),
+      });
+      mockDB.addOracles(oracle);
+
+      await store.init({
+        type: EventType.UNCONFIRMED,
+        hashId: oracle.hashId,
+      });
+
+      // reset()
+      expect(store.topics.length).toBe(0);
+      expect(store.amount).toBe('');
+      expect(store.address).toBe(undefined);
+      expect(store.topicAddress).toBe(undefined);
+      expect(store.transactions.length).toBe(0);
+      expect(store.selectedOptionIdx).toBe(-1);
+      expect(store.escrowClaim).toBe(0);
+      expect(store.hashId).toBe(oracle.hashId);
+      expect(store.allowance).toBe(undefined);
+      expect(store.qtumWinnings).toBe(0);
+      expect(store.botWinnings).toBe(0);
+      expect(store.withdrawableAddresses.length).toBe(0);
+
+      // initUnconfirmedOracle()
+      expect(store.oracles.length).toBe(1);
+      expect(store.oracles[0].hashId).toBe(oracle.hashId);
+      expect(store.loading).toBe(false);
     });
 
     it('sets all the values for a Betting Oracle', async () => {
