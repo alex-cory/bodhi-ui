@@ -52,5 +52,6 @@ function getMockWalletStore() {
         bot: 20000,
       },
     ],
+    checkAllowance: jest.fn(),
   });
 }

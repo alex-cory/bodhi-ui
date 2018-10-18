@@ -2,7 +2,7 @@ import cryptoRandomString from 'crypto-random-string';
 import { times, each } from 'lodash';
 import moment from 'moment';
 import { OracleStatus, Token, TransactionStatus } from 'constants';
-import { Transaction } from 'models';
+import { Topic, Oracle, Transaction } from 'models';
 
 import { decimalToSatoshi } from '../src/helpers/utility';
 import { randomInt } from '../src/helpers/testUtil';
@@ -57,7 +57,7 @@ export default {
 
   /* Topics */
   generateTopic(params) {
-    const topic = {
+    const topic = new Topic({
       txid: cryptoRandomString(64),
       blockNum: randomInt(1, 1000),
       address: cryptoRandomString(40),
@@ -71,7 +71,7 @@ export default {
       resultIdx: randomInt(0, 2),
       escrowAmount: decimalToSatoshi(5),
       language: 'en-US',
-    };
+    });
     Object.assign(topic, params);
     return topic;
   },
@@ -92,7 +92,7 @@ export default {
   /* Oracles */
   generateOracle(params) {
     const currentUnix = moment.unix();
-    const oracle = {
+    const oracle = new Oracle({
       txid: cryptoRandomString(64),
       blockNum: randomInt(1, 1000),
       address: cryptoRandomString(40),
@@ -110,7 +110,7 @@ export default {
       resultSetStartTime: currentUnix + 200,
       resultSetEndTime: currentUnix + 300,
       language: 'en-US',
-    };
+    });
     Object.assign(oracle, params);
     return oracle;
   },

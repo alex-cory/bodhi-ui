@@ -1,6 +1,6 @@
 import { isEqual } from 'lodash';
 import cryptoRandomString from 'crypto-random-string';
-import { EventType, TransactionType } from 'constants';
+import { EventType, TransactionType, OracleStatus } from 'constants';
 
 import EventStore from './store';
 import mockDB from '../../../test/mockDB';
@@ -113,7 +113,46 @@ describe('EventStore', () => {
       expect(store.allowance).toBe(undefined);
     });
 
-    it('sets all the values for a Result Setting Oracle', async () => {
+    it.only('sets all the values for a Result Setting Oracle', async () => {
+      const oracle = mockDB.generateOracle({
+        status: OracleStatus.WAIT_RESULT,
+      });
+      mockDB.addOracles(oracle);
+      const { topicAddress, address, txid } = oracle;
+
+      await store.init({
+        topicAddress,
+        address,
+        txid,
+        type: EventType.ORACLE,
+      });
+
+      // reset()
+      expect(store.amount).toBe('100');
+      expect(store.selectedOptionIdx).toBe(-1);
+      expect(store.escrowClaim).toBe(0);
+      expect(store.allowance).toBe(undefined);
+      expect(store.qtumWinnings).toBe(0);
+      expect(store.botWinnings).toBe(0);
+      expect(store.withdrawableAddresses.length).toBe(0);
+
+      // Oracle values
+      expect(store.topicAddress).toBe(topicAddress);
+      expect(store.address).toBe(address);
+      expect(store.txid).toBe(txid);
+      expect(store.type).toBe(EventType.ORACLE);
+      expect(store.hashId).toBe(undefined);
+
+      // initOracle()
+      expect(store.oracles.length).toBe(1);
+      expect(store.oracles[0].address).toBe(address);
+      expect(store.loading).toBe(false);
+
+      // queryTransactions()
+      expect(store.transactions.length).toBe(0);
+
+      // getAllowanceAmount()
+      expect(store.allowance).toBe(undefined);
     });
 
     it('sets all the values for a Voting Oracle', async () => {
